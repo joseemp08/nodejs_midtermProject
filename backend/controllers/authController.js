@@ -2,7 +2,7 @@ const User = require('../models/userModel');
 const ErrorResponse = require('../utils/errorResponse');
 
 
-exports.singup = async(req, res, next) => {
+exports.signup = async (req, res, next) => {
     const { email } = req.body;
     const userExist = await User.findOne({ email });
     if (userExist) {
@@ -17,4 +17,4 @@ exports.singup = async(req, res, next) => {
     } catch (error) {
         next(error);
     }
-}  
+}

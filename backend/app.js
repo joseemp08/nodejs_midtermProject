@@ -8,6 +8,7 @@ var cors = require('cors');
 var cookieParser = require('cookie-parser');
 
 
+
 //database connection
 
 mongoose.connect(process.env.DATABASE,{
@@ -19,7 +20,7 @@ mongoose.connect(process.env.DATABASE,{
      .then(() => console.log("DB connected"))
      .catch((err) => console.log(err));
 
-//MIDDLEWARE
+//middleware
 
 app.use(morgan('dev'));
 app.use(bodyParser.json({limit: "5mb"}));
