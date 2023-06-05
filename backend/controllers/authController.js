@@ -1,6 +1,6 @@
+
 const User = require('../models/userModel');
 const ErrorResponse = require('../utils/errorResponse');
-
 
 exports.signup = async (req, res, next) => {
     const { email } = req.body;
@@ -18,6 +18,7 @@ exports.signup = async (req, res, next) => {
         next(error);
     }
 }
+
 
 exports.signin = async (req, res, next) => {
     try {
@@ -71,7 +72,7 @@ exports.logout = (req, res, next) => {
         message: "logged out"
     })
 }
- 
+
 
 //user profile
 exports.userProfile = async (req, res, next) => {

@@ -1,204 +1,87 @@
-const cloudinary = require('../utils/cloudinary');
-const Post = require('../models/postModel');
+
+const User = require('../models/userModel');
 const ErrorResponse = require('../utils/errorResponse');
 
-
-//create post
-exports.createPost = async (req, res, next) => {
-    const { title, content, postedBy, image, likes, comments } = req.body;
-
+exports.signup = async (req, res, next) => {
+    const { email } = req.body;
+    const userExist = await User.findOne({ email });
+    if (userExist) {
+        return next(new ErrorResponse("E-mail already registred", 400));
+    }
     try {
-        //upload image in cloudinary
-        const result = await cloudinary.uploader.upload(image, {
-            folder: "posts",
-            width: 1200,
-            crop: "scale"
-        })
-        const post = await Post.create({
-            title,
-            content,
-            postedBy: req.user._id,
-            image: {
-                public_id: result.public_id,
-                url: result.secure_url
-            },
-
-        });
+        const user = await User.create(req.body);
         res.status(201).json({
             success: true,
-            post
-        })
-
-
-    } catch (error) {
-        console.log(error);
-        next(error);
-    }
-
-}
-
-//show posts
-exports.showPost = async (req, res, next) => {
-    try {
-        const posts = await Post.find().sort({ createdAt: -1 }).populate('postedBy', 'name');
-        res.status(201).json({
-            success: true,
-            posts
+            user
         })
     } catch (error) {
         next(error);
     }
-
 }
 
-//show single post
-exports.showSinglePost = async (req, res, next) => {
+
+exports.signin = async (req, res, next) => {
     try {
-        const post = await Post.findById(req.params.id).populate('comments.postedBy', 'name');
-        res.status(200).json({
-            success: true,
-            post
-        })
-    } catch (error) {
-        next(error);
-    }
-
-}
-
-//delete post
-exports.deletePost = async (req, res, next) => {
-    const currentPost = await Post.findById(req.params.id);
-
-    //delete post image in cloudinary       
-    const ImgId = currentPost.image.public_id;
-    if (ImgId) {
-        await cloudinary.uploader.destroy(ImgId);
-    }
-
-    try {
-        const post = await Post.findByIdAndRemove(req.params.id);
-        res.status(200).json({
-            success: true,
-            message: "post deleted"
-        })
-
-    } catch (error) {
-        next(error);
-    }
-
-}
-
-exports.updatePost = async (req, res, next) => {
-    try {
-        const { title, content, image } = req.body;
-        const currentPost = await Post.findById(req.params.id);
-
-        //build the object data
-        const data = {
-            title: title || currentPost.title,
-            content: content || currentPost.content,
-            image: image || currentPost.image,
+        const { email, password } = req.body;
+        //validation
+        if (!email) {
+            return next(new ErrorResponse("please add an email", 403));
+        }
+        if (!password) {
+            return next(new ErrorResponse("please add a password", 403));
         }
 
-        //modify post image conditionally
-        if (req.body.image !== '') {
-
-            const ImgId = currentPost.image.public_id;
-            if (ImgId) {
-                await cloudinary.uploader.destroy(ImgId);
-            }
-
-            const newImage = await cloudinary.uploader.upload(req.body.image, {
-                folder: 'posts',
-                width: 1200,
-                crop: "scale"
-            });
-
-            data.image = {
-                public_id: newImage.public_id,
-                url: newImage.secure_url
-            }
-
+        //check user email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return next(new ErrorResponse("invalid credentials", 400));
+        }
+        //check password
+        const isMatched = await user.comparePassword(password);
+        if (!isMatched) {
+            return next(new ErrorResponse("invalid credentials", 400));
         }
 
-        const postUpdate = await Post.findByIdAndUpdate(req.params.id, data, { new: true });
-
-        res.status(200).json({
-            success: true,
-            postUpdate
-        })
-
+        sendTokenResponse(user, 200, res);
     } catch (error) {
         next(error);
     }
-
-} 
-
-//add comment
-exports.addComment = async (req, res, next) => {
-    const { comment } = req.body;
-    try {
-        const postComment = await Post.findByIdAndUpdate(req.params.id, {
-            $push: { comments: { text: comment, postedBy: req.user._id } }
-        },
-            { new: true }
-        );
-        const post = await Post.findById(postComment._id).populate('comments.postedBy', 'name email');
-        res.status(200).json({
-            success: true,
-            post
-        })
-
-    } catch (error) {
-        next(error);
-    }
-
 }
 
-//add like
-exports.addLike = async (req, res, next) => {
-
-    try {
-        const post = await Post.findByIdAndUpdate(req.params.id, {
-            $addToSet: { likes: req.user._id }
-        },
-            { new: true }
-        );
-        const posts = await Post.find().sort({ createdAt: -1 }).populate('postedBy', 'name');
-        main.io.emit('add-like', posts);
-
-        res.status(200).json({
-            success: true,
-            post,
-            posts
-        })
-
-    } catch (error) {
-        next(error);
+const sendTokenResponse = async (user, codeStatus, res) => {
+    const token = await user.getJwtToken();
+    const options = { maxAge: 60 * 60 * 1000, httpOnly: true }
+    if (process.env.NODE_ENV === 'production') {
+        options.secure = true
     }
-
+    res
+        .status(codeStatus)
+        .cookie('token', token, options)
+        .json({
+            success: true,
+            id: user._id,
+            role: user.role
+        })
 }
 
-//remove like
-exports.removeLike = async (req, res, next) => {
-
-    try {
-        const post = await Post.findByIdAndUpdate(req.params.id, {
-            $pull: { likes: req.user._id }
-        },
-            { new: true }
-        );
-
-        const posts = await Post.find().sort({ createdAt: -1 }).populate('postedBy', 'name');
-        main.io.emit('remove-like', posts);
-
-        res.status(200).json({
-            success: true,
-            post
-        })
-
-    } catch (error) {
-        next(error);
-    }
-
+//log out
+exports.logout = (req, res, next) => {
+    res.clearCookie('token');
+    res.status(200).json({
+        success: true,
+        message: "logged out"
+    })
 }
+
+
+//user profile
+exports.userProfile = async (req, res, next) => {
+    const user = await User.findById(req.user.id).select('-password');
+    res.status(200).json({
+        success: true,
+        user
+    })
+}
+
+
+
