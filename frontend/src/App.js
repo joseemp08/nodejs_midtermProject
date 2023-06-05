@@ -8,7 +8,7 @@ import { ProSidebarProvider } from 'react-pro-sidebar';
 import { Provider } from 'react-redux';
 import store from './redux/store';
 import AdminDashboard from './admin/AdminDashboard';
-import AdminRoute from './components/AdminRoute';
+import AdminRoute from './components/AdminRoutes';
 import UserRoute from './components/UserRoute';
 import CreatePost from './admin/CreatePost';
 import LogIn from './pages/LogIn';

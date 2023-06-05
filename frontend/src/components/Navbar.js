@@ -13,7 +13,7 @@ import MenuItem from '@mui/material/MenuItem';
 import HouseIcon from '@mui/icons-material/House';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { userLogoutAction } from '../redux/actions/userAction';
+import { userLogoutAction } from '../redux/actions/userActions';
 import { useDispatch, useSelector } from 'react-redux';
 
 

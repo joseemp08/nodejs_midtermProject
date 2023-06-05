@@ -5,7 +5,7 @@ import Button from '@mui/material/Button';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useDispatch } from 'react-redux'
-import { userSignUpAction } from '../redux/actions/userAction'
+import { userSignUpAction } from '../redux/actions/userActions'
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 

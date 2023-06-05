@@ -6,7 +6,7 @@ import PostAddIcon from '@mui/icons-material/PostAdd';
 import Person3Icon from '@mui/icons-material/Person3';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { userLogoutAction, userProfileAction } from '../../redux/actions/userAction';
+import { userLogoutAction, userProfileAction } from '../../redux/actions/userActions';
 import { useNavigate } from 'react-router-dom';
 import LoginIcon from '@mui/icons-material/Login';
 

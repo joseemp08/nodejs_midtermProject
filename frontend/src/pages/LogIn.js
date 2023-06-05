@@ -7,7 +7,7 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { userSignInAction } from '../redux/actions/userAction'
+import { userSignInAction } from '../redux/actions/userActions'
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
